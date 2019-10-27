@@ -4,15 +4,9 @@ import lombok.NonNull;
 
 import java.util.UUID;
 
-public class AccountNotFoundException extends RuntimeException {
-    private final UUID id;
+public class AccountNotFoundException extends ValidationException {
 
     public AccountNotFoundException(@NonNull UUID id) {
-        this.id = id;
-    }
-
-    @Override
-    public String getMessage() {
-        return "Account ID " + id.toString() + " not found";
+        super("Account ID " + id.toString() + " not found");
     }
 }

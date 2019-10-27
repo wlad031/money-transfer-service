@@ -11,15 +11,16 @@ import org.wlad031.money.transfer.converter.AbstractConverter;
 import org.wlad031.money.transfer.converter.TransactionControllerConverter;
 import org.wlad031.money.transfer.exception.TransactionNotFoundException;
 import org.wlad031.money.transfer.model.request.CreateNewTransactionRequestBody;
-import org.wlad031.money.transfer.model.request.DepositRequestBody;
-import org.wlad031.money.transfer.model.request.WithdrawRequestBody;
 import org.wlad031.money.transfer.model.response.ErrorResponse;
 import org.wlad031.money.transfer.model.response.GetAccountTransactionsResponse;
 import org.wlad031.money.transfer.model.response.GetTransactionDetailsResponse;
 import org.wlad031.money.transfer.model.response.IdResponse;
 import org.wlad031.money.transfer.validator.TransactionControllerValidator;
 
+import java.util.UUID;
+
 import static io.javalin.apibuilder.ApiBuilder.*;
+import static org.wlad031.money.transfer.converter.AbstractConverter.convertId;
 
 public class TransactionController implements Controller {
 
@@ -48,12 +49,6 @@ public class TransactionController implements Controller {
         });
         path("/transaction", () -> {
             post(this::createTransaction);
-        });
-        path("/transaction/withdraw", () -> {
-            post(this::withdraw);
-        });
-        path("/transaction/deposit", () -> {
-            post(this::deposit);
         });
     }
 
@@ -87,9 +82,10 @@ public class TransactionController implements Controller {
     )
     public void getTransactionDetails(Context ctx) {
         final var transactionId = ctx.pathParam("id");
+        validator.validateNotNullableId("id", transactionId);
 
         final var transactionDetails = query.getTransactionDetails(
-                AbstractConverter.convertId(transactionId))
+                convertId(transactionId))
                 .thenApply(converter::convertGetTransactionDetails);
 
         ctx.json(transactionDetails);
@@ -117,10 +113,12 @@ public class TransactionController implements Controller {
             }
     )
     public void getAccountTransactions(Context ctx) {
-        final var accountId = AbstractConverter.convertId(ctx.pathParam("id"));
+        final var accountId = ctx.pathParam("id");
+        validator.validateNotNullableId("id", accountId);
 
-        final var transactions = query.getAccountTransactions(accountId)
-                .thenApply(t -> converter.convertGetAccountTransactionsResponse(accountId, t));
+        final var id = convertId(accountId);
+        final var transactions = query.getAccountTransactions(id)
+                .thenApply(t -> converter.convertGetAccountTransactionsResponse(id, t));
 
         ctx.json(transactions);
         ctx.status(Response.SC_OK);
@@ -156,84 +154,11 @@ public class TransactionController implements Controller {
         final var transactionId = query.generateTransactionId();
 
         command.createNewTransaction(transactionId,
-                AbstractConverter.convertId(body.getSenderId()),
-                AbstractConverter.convertId(body.getReceiverId()),
-                body.getAmountSent(), body.getAmountReceived(),
+                body.getSenderId() == null ? null : convertId(body.getSenderId()),
+                body.getReceiverId() == null ? null : convertId(body.getReceiverId()),
+                body.getAmountSent(),
+                body.getAmountReceived(),
                 body.getDateTime());
-
-        ctx.json(converter.convertIdResponse(transactionId));
-        ctx.status(Response.SC_CREATED);
-    }
-
-    @OpenApi(
-            path = "/transaction/withdraw",
-            method = HttpMethod.POST,
-            summary = "Withdraws from the given account",
-            description = "Withdraws from the given account",
-            requestBody = @OpenApiRequestBody(
-                    content = @OpenApiContent(from = WithdrawRequestBody.class),
-                    required = true),
-            responses = {
-                    @OpenApiResponse(status = "201",
-                            content = @OpenApiContent(from = IdResponse.class),
-                            description = "ID of the created transaction"),
-                    @OpenApiResponse(status = "400",
-                            content = @OpenApiContent(from = ErrorResponse.class),
-                            description = "Bad request"),
-                    @OpenApiResponse(status = "404",
-                            content = @OpenApiContent(from = ErrorResponse.class),
-                            description = "Sender account not found"),
-                    @OpenApiResponse(status = "500",
-                            content = @OpenApiContent(from = ErrorResponse.class),
-                            description = "Internal error"),
-            }
-    )
-    public void withdraw(Context ctx) {
-        final var body = ctx.bodyAsClass(WithdrawRequestBody.class);
-        validator.validateWithdraw(body);
-
-        final var transactionId = query.generateTransactionId();
-
-        command.withdraw(transactionId,
-                AbstractConverter.convertId(body.getAccountId()),
-                body.getAmount(), body.getDateTime());
-
-        ctx.json(converter.convertIdResponse(transactionId));
-        ctx.status(Response.SC_CREATED);
-    }
-
-    @OpenApi(
-            path = "/transaction/deposit",
-            method = HttpMethod.POST,
-            summary = "Deposit to the given account",
-            description = "Deposit to the given account",
-            requestBody = @OpenApiRequestBody(
-                    content = @OpenApiContent(from = DepositRequestBody.class),
-                    required = true),
-            responses = {
-                    @OpenApiResponse(status = "201",
-                            content = @OpenApiContent(from = IdResponse.class),
-                            description = "ID of the created transaction"),
-                    @OpenApiResponse(status = "400",
-                            content = @OpenApiContent(from = ErrorResponse.class),
-                            description = "Bad request"),
-                    @OpenApiResponse(status = "404",
-                            content = @OpenApiContent(from = ErrorResponse.class),
-                            description = "Receiver account not found"),
-                    @OpenApiResponse(status = "500",
-                            content = @OpenApiContent(from = ErrorResponse.class),
-                            description = "Internal error"),
-            }
-    )
-    public void deposit(Context ctx) {
-        final var body = ctx.bodyAsClass(DepositRequestBody.class);
-        validator.validateDeposit(body);
-
-        final var transactionId = query.generateTransactionId();
-
-        command.deposit(transactionId,
-                AbstractConverter.convertId(body.getAccountId()),
-                body.getAmount(), body.getDateTime());
 
         ctx.json(converter.convertIdResponse(transactionId));
         ctx.status(Response.SC_CREATED);

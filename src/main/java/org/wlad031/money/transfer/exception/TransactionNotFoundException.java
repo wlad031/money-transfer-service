@@ -4,15 +4,9 @@ import lombok.NonNull;
 
 import java.util.UUID;
 
-public class TransactionNotFoundException extends RuntimeException {
-    private final UUID id;
+public class TransactionNotFoundException extends ValidationException {
 
     public TransactionNotFoundException(@NonNull UUID id) {
-        this.id = id;
-    }
-
-    @Override
-    public String getMessage() {
-        return "Transaction ID " + id.toString() + " not found";
+        super("Transaction ID " + id.toString() + " not found");
     }
 }

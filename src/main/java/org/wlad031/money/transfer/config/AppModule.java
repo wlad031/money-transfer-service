@@ -23,26 +23,15 @@ public class AppModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        try {
-            final var props = new Properties();
-            final var propertiesResource = getClass().getClassLoader().getResourceAsStream("application.properties");
-            props.load(propertiesResource);
-            Names.bindProperties(binder(), props);
-
-            bind(Javalin.class).toInstance(createJavalin());
-
-            bind(Router.class);
-            bind(Server.class);
-            bind(SimpleInMemoryDataSource.class);
-            bind(Query.class).to(QueryImpl.class);
-            bind(Command.class).to(CommandImpl.class);
-            bind(AccountDao.class).to(SimpleInMemoryAccountDao.class);
-            bind(TransactionDao.class).to(SimpleInMemoryTransactionDao.class);
-            bind(AccountController.class);
-            bind(TransactionController.class);
-        } catch (IOException e) {
-            LoggerFactory.getLogger("AppConfiguration").error("Error happened when trying to run the application", e);
-        }
+        bind(Javalin.class).toInstance(createJavalin());
+        bind(Router.class);
+        bind(SimpleInMemoryDataSource.class);
+        bind(Query.class).to(QueryImpl.class);
+        bind(Command.class).to(CommandImpl.class);
+        bind(AccountDao.class).to(SimpleInMemoryAccountDao.class);
+        bind(TransactionDao.class).to(SimpleInMemoryTransactionDao.class);
+        bind(AccountController.class);
+        bind(TransactionController.class);
     }
 
     private Javalin createJavalin() {

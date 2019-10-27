@@ -2,14 +2,12 @@ package org.wlad031.money.transfer.integration;
 
 import io.javalin.Javalin;
 import io.restassured.http.ContentType;
-import io.restassured.response.ValidatableResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.eclipse.jetty.server.Response;
 import org.json.JSONObject;
-import org.junit.*;
-import org.mockito.Matchers;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.wlad031.money.transfer.command.CommandImpl;
 import org.wlad031.money.transfer.config.Router;
 import org.wlad031.money.transfer.controller.AccountController;
@@ -21,19 +19,15 @@ import org.wlad031.money.transfer.model.Account;
 import org.wlad031.money.transfer.query.QueryImpl;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Currency;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
-import static io.restassured.internal.common.assertion.AssertParameter.notNull;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-public class ITAccountOperations {
+public class ITAccountOperations extends AbstractIntegrationTest {
 
     private static SimpleInMemoryDataSource dataSource;
     private static Javalin javalin;
@@ -64,21 +58,26 @@ public class ITAccountOperations {
         javalin.stop();
     }
 
+    //@formatter:off
+
     @Test
     public void accountCreate_ValidRequest() throws IOException {
-        given().
-                accept(ContentType.JSON).
-                body(new JSONObject()
-                        .put("name", "accountName")
-                        .put("currency", "EUR")).
-        when().
-                post("/account").
-        then().
-                statusCode(Response.SC_CREATED).
-                body("$", hasKey("id"));
+        final var id =
+                given().
+                        accept(ContentType.JSON).
+                        body(new JSONObject()
+                                .put("name", "accountName")
+                                .put("currency", "EUR")).
+                when().
+                        post("/account").
+                then().
+                        statusCode(Response.SC_CREATED).
+                        body("$", hasKey("id")).
+                extract().
+                        path("id");
         assertThat(dataSource.getAccounts().entrySet(), hasSize(1));
-        assertEquals("accountName", new ArrayList<>(dataSource.getAccounts().values()).get(0).getName());
-        assertEquals("EUR", new ArrayList<>(dataSource.getAccounts().values()).get(0).getCurrency().toString());
+        assertEquals("accountName", dataSource.getAccounts().get(UUID.fromString(String.valueOf(id))).getName());
+        assertEquals("EUR", dataSource.getAccounts().get(UUID.fromString(String.valueOf(id))).getCurrency().toString());
     }
 
     @Test
@@ -92,7 +91,8 @@ public class ITAccountOperations {
                 post("/account").
         then().
                 statusCode(Response.SC_BAD_REQUEST).
-                body("$", hasKey("message"));
+                body("$", hasKey("message")).
+                body("message", equalTo("Invalid account name: null"));
         assertThat(dataSource.getAccounts().entrySet(), hasSize(0));
     }
 
@@ -107,7 +107,8 @@ public class ITAccountOperations {
                 post("/account").
         then().
                 statusCode(Response.SC_BAD_REQUEST).
-                body("$", hasKey("message"));
+                body("$", hasKey("message")).
+                body("message", equalTo("Invalid currency null"));
         assertThat(dataSource.getAccounts().entrySet(), hasSize(0));
     }
 
@@ -122,7 +123,8 @@ public class ITAccountOperations {
                 post("/account").
         then().
                 statusCode(Response.SC_BAD_REQUEST).
-                body("$", hasKey("message"));
+                body("$", hasKey("message")).
+                body("message", equalTo("Invalid currency LOL"));
         assertThat(dataSource.getAccounts().entrySet(), hasSize(0));
     }
 
@@ -142,21 +144,62 @@ public class ITAccountOperations {
 
     @Test
     public void getAccountDetails_NonExistingAccount() {
-        final var accountId = UUID.randomUUID();
+        final var accountId = UUID.randomUUID().toString();
         given().
                 accept(ContentType.JSON).
         when().
-                get("/account/" + accountId.toString()).
+                get("/account/" + accountId).
         then().
                 statusCode(Response.SC_NOT_FOUND).
-                body("$", hasKey("message"));
+                body("$", hasKey("message")).
+                body("message", equalTo("Account ID " + accountId + " not found"));
     }
 
-    private static Javalin createJavalin() {
-        return Javalin
-                .create(config -> {
-                    config.showJavalinBanner = false;
-                    config.defaultContentType = "application/json";
-                });
+    @Test
+    public void getAccountDetails_InvalidId() {
+        final var accountId = "hello";
+        given().
+                accept(ContentType.JSON).
+        when().
+                get("/account/" + accountId).
+        then().
+                statusCode(Response.SC_BAD_REQUEST).
+                body("$", hasKey("message")).
+                body("message", equalTo("Invalid ID=" + accountId + " for field id"));
     }
+
+    @Test
+    public void getAllAccountIds_ThereAreAccounts() {
+        final var accountId1 = UUID.randomUUID();
+        final var accountId2 = UUID.randomUUID();
+        final var accountId3 = UUID.randomUUID();
+        dataSource.getAccounts().put(accountId1, new Account(accountId1, "accountName1", Currency.getInstance("EUR")));
+        dataSource.getAccounts().put(accountId2, new Account(accountId2, "accountName2", Currency.getInstance("EUR")));
+        dataSource.getAccounts().put(accountId3, new Account(accountId3, "accountName3", Currency.getInstance("EUR")));
+        given().
+                accept(ContentType.JSON).
+        when().
+                get("/account").
+        then().
+                statusCode(Response.SC_OK).
+                body("$", hasKey("accountIds")).
+                body("accountIds", hasSize(3)).
+                body("accountIds", containsInAnyOrder(
+                        accountId1.toString(), accountId2.toString(), accountId3.toString()));
+    }
+
+    @Test
+    public void getAllAccountIds_ThereAreNoAccounts() {
+        given().
+                accept(ContentType.JSON).
+        when().
+                get("/account").
+        then().
+                statusCode(Response.SC_OK).
+                body("$", hasKey("accountIds")).
+                body("accountIds", hasSize(0));
+    }
+
+    //@formatter:on
+
 }

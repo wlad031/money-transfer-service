@@ -3,21 +3,18 @@ package org.wlad031.money.transfer.validator;
 import org.junit.Test;
 import org.wlad031.money.transfer.exception.InvalidIdException;
 import org.wlad031.money.transfer.exception.InvalidTransactionAmount;
+import org.wlad031.money.transfer.exception.ValidationException;
 import org.wlad031.money.transfer.model.request.CreateNewTransactionRequestBody;
-import org.wlad031.money.transfer.model.request.DepositRequestBody;
-import org.wlad031.money.transfer.model.request.WithdrawRequestBody;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
-
 public class TransactionControllerValidatorTest {
+
+    private final TransactionControllerValidator validator = new TransactionControllerValidator();
 
     @Test
     public void validateCreateTransaction_ValidRequest() {
-        final var validator = new TransactionControllerValidator();
-
         validator.validateCreateTransaction(new CreateNewTransactionRequestBody(
                 UUID.randomUUID().toString(), UUID.randomUUID().toString(),
                 new BigDecimal("10.21"), new BigDecimal("10.01")));
@@ -25,8 +22,6 @@ public class TransactionControllerValidatorTest {
 
     @Test(expected = InvalidIdException.class)
     public void validateCreateTransaction_InvalidSenderId() {
-        final var validator = new TransactionControllerValidator();
-
         validator.validateCreateTransaction(new CreateNewTransactionRequestBody(
                 "lol", UUID.randomUUID().toString(),
                 new BigDecimal("10.21"), new BigDecimal("10.01")));
@@ -34,8 +29,6 @@ public class TransactionControllerValidatorTest {
 
     @Test(expected = InvalidIdException.class)
     public void validateCreateTransaction_InvalidReceiverId() {
-        final var validator = new TransactionControllerValidator();
-
         validator.validateCreateTransaction(new CreateNewTransactionRequestBody(
                 UUID.randomUUID().toString(), "lol",
                 new BigDecimal("10.21"), new BigDecimal("10.01")));
@@ -43,8 +36,6 @@ public class TransactionControllerValidatorTest {
 
     @Test(expected = InvalidTransactionAmount.class)
     public void validateCreateTransaction_InvalidAmountSent() {
-        final var validator = new TransactionControllerValidator();
-
         validator.validateCreateTransaction(new CreateNewTransactionRequestBody(
                 UUID.randomUUID().toString(), UUID.randomUUID().toString(),
                 new BigDecimal("-10.21"), new BigDecimal("10.01")));
@@ -52,60 +43,48 @@ public class TransactionControllerValidatorTest {
 
     @Test(expected = InvalidTransactionAmount.class)
     public void validateCreateTransaction_InvalidAmountReceived() {
-        final var validator = new TransactionControllerValidator();
-
         validator.validateCreateTransaction(new CreateNewTransactionRequestBody(
                 UUID.randomUUID().toString(), UUID.randomUUID().toString(),
                 new BigDecimal("10.21"), new BigDecimal("-10.01")));
     }
 
-    @Test
-    public void validateWithdraw_ValidRequest() {
-        final var validator = new TransactionControllerValidator();
-
-        validator.validateWithdraw(new WithdrawRequestBody(
-                UUID.randomUUID().toString(),
-                new BigDecimal("10.21")));
+    @Test(expected = ValidationException.class)
+    public void validateCreateTransaction_SenderIsNullAndAmountSentIsNot() {
+        validator.validateCreateTransaction(new CreateNewTransactionRequestBody(
+                null, UUID.randomUUID().toString(),
+                new BigDecimal("10.0"), new BigDecimal("10.0")
+        ));
     }
 
-    @Test(expected = InvalidIdException.class)
-    public void validateWithdraw_InvalidSenderId() {
-        final var validator = new TransactionControllerValidator();
-
-        validator.validateWithdraw(new WithdrawRequestBody(
-                "lol", new BigDecimal("10.21")));
+    @Test(expected = ValidationException.class)
+    public void validateCreateTransaction_SenderIsNotNullAndAmountSentIsNull() {
+        validator.validateCreateTransaction(new CreateNewTransactionRequestBody(
+                UUID.randomUUID().toString(), UUID.randomUUID().toString(),
+                null, new BigDecimal("10.0")
+        ));
     }
 
-    @Test(expected = InvalidTransactionAmount.class)
-    public void validateWithdraw_InvalidAmountSent() {
-        final var validator = new TransactionControllerValidator();
-
-        validator.validateWithdraw(new WithdrawRequestBody(
-                UUID.randomUUID().toString(), new BigDecimal("-10.21")));
+    @Test(expected = ValidationException.class)
+    public void validateCreateTransaction_ReceiverIsNullAndAmountReceiveIsNot() {
+        validator.validateCreateTransaction(new CreateNewTransactionRequestBody(
+                UUID.randomUUID().toString(), null,
+                new BigDecimal("10.0"), new BigDecimal("10.0")
+        ));
     }
 
-    @Test
-    public void validateDeposit_ValidRequest() {
-        final var validator = new TransactionControllerValidator();
-
-        validator.validateDeposit(new DepositRequestBody(
-                UUID.randomUUID().toString(),
-                new BigDecimal("10.21")));
+    @Test(expected = ValidationException.class)
+    public void validateCreateTransaction_ReceiverIsNotNullAndAmountReceiveIsNull() {
+        validator.validateCreateTransaction(new CreateNewTransactionRequestBody(
+                UUID.randomUUID().toString(), UUID.randomUUID().toString(),
+                new BigDecimal("10.0"), null
+        ));
     }
 
-    @Test(expected = InvalidIdException.class)
-    public void validateDeposit_InvalidSenderId() {
-        final var validator = new TransactionControllerValidator();
-
-        validator.validateDeposit(new DepositRequestBody(
-                "lol", new BigDecimal("10.21")));
-    }
-
-    @Test(expected = InvalidTransactionAmount.class)
-    public void validateDeposit_InvalidAmountSent() {
-        final var validator = new TransactionControllerValidator();
-
-        validator.validateDeposit(new DepositRequestBody(
-                UUID.randomUUID().toString(), new BigDecimal("-10.21")));
+    @Test(expected = ValidationException.class)
+    public void validateCreateTransaction_SenderAndReceiverAreNull() {
+        validator.validateCreateTransaction(new CreateNewTransactionRequestBody(
+                null, null,
+                null, null
+        ));
     }
 }

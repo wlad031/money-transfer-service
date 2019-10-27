@@ -26,6 +26,7 @@
         <jackson.kotlin.version>2.9.9</jackson.kotlin.version>
         <openapi.kotlin.version>0.20.1</openapi.kotlin.version>
         <swagger.webjars.version>3.23.8</swagger.webjars.version>
+        <jacoco.version>0.8.5</jacoco.version>
     </properties>
 
     <dependencies>
@@ -137,6 +138,35 @@
                         </manifest>
                     </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <configuration>
+                    <ignores>
+                        <ignore>com.sample.package.bean.*</ignore>
+                    </ignores>
+                    <excludes>
+                        <exclude>**/model/**/*.class</exclude>
+                        <exclude>**/config/**/*.class</exclude>
+                        <exclude>**/IT*.class</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

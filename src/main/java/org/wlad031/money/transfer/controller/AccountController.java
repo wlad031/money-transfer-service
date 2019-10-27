@@ -56,10 +56,6 @@ public class AccountController implements Controller {
             ctx.json(new ErrorResponse(e.getMessage()));
             ctx.status(Response.SC_NOT_FOUND);
         });
-        javalin.exception(InvalidAccountNameException.class, (e, ctx) -> {
-            ctx.json(new ErrorResponse(e.getMessage()));
-            ctx.status(Response.SC_BAD_REQUEST);
-        });
     }
 
     @OpenApi(
@@ -84,6 +80,7 @@ public class AccountController implements Controller {
     )
     public void getAccountDetailsById(Context ctx) {
         final var accountId = ctx.pathParam("id");
+        validator.validateNotNullableId("id", accountId);
         final var accountDetails = query.getAccountDetailsById(UUID.fromString(accountId))
                 .thenApply(converter::convertGetAccountDetails);
 

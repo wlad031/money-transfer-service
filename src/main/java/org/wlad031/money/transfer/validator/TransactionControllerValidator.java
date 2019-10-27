@@ -3,9 +3,8 @@ package org.wlad031.money.transfer.validator;
 import lombok.NonNull;
 import org.wlad031.money.transfer.exception.InvalidIdException;
 import org.wlad031.money.transfer.exception.InvalidTransactionAmount;
+import org.wlad031.money.transfer.exception.ValidationException;
 import org.wlad031.money.transfer.model.request.CreateNewTransactionRequestBody;
-import org.wlad031.money.transfer.model.request.DepositRequestBody;
-import org.wlad031.money.transfer.model.request.WithdrawRequestBody;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -13,43 +12,33 @@ import java.util.UUID;
 public class TransactionControllerValidator extends AbstractValidator {
 
     public void validateCreateTransaction(@NonNull CreateNewTransactionRequestBody body) {
-        try {
-            UUID.fromString(body.getSenderId());
-        } catch (IllegalArgumentException e) {
-            throw new InvalidIdException("senderId", body.getSenderId());
+        if (body.getSenderId() == null && body.getReceiverId() == null) {
+            throw new ValidationException("senderId and/or receiverId must be not null");
         }
-        try {
-            UUID.fromString(body.getReceiverId());
-        } catch (IllegalArgumentException e) {
-            throw new InvalidIdException("receiverId", body.getReceiverId());
+        if (body.getSenderId() != null && body.getAmountSent() == null) {
+            throw new ValidationException("senderId is not null, but amountSent is null");
         }
-        if (body.getAmountSent().compareTo(BigDecimal.ZERO) < 1) {
-            throw new InvalidTransactionAmount("amountSent", body.getAmountSent());
+        if (body.getSenderId() == null && body.getAmountSent() != null) {
+            throw new ValidationException("senderId is null, but amountSent is not null");
         }
-        if (body.getAmountReceived().compareTo(BigDecimal.ZERO) < 1) {
-            throw new InvalidTransactionAmount("amountReceived", body.getAmountReceived());
+        if (body.getReceiverId() != null && body.getAmountReceived() == null) {
+            throw new ValidationException("receiverId is not null, but amountReceived is null");
         }
-    }
+        if (body.getReceiverId() == null && body.getAmountReceived() != null) {
+            throw new ValidationException("receiverId is null, but amountReceived is not null");
+        }
 
-    public void validateWithdraw(@NonNull WithdrawRequestBody body) {
-        try {
-            UUID.fromString(body.getAccountId());
-        } catch (IllegalArgumentException e) {
-            throw new InvalidIdException("senderId", body.getAccountId());
+        if (body.getSenderId() != null) {
+            validateNotNullableId("senderId", body.getSenderId());
+            if (body.getAmountSent().compareTo(BigDecimal.ZERO) < 1) {
+                throw new InvalidTransactionAmount("amountSent", body.getAmountSent());
+            }
         }
-        if (body.getAmount().compareTo(BigDecimal.ZERO) < 1) {
-            throw new InvalidTransactionAmount("amountSent", body.getAmount());
-        }
-    }
-
-    public void validateDeposit(@NonNull DepositRequestBody body) {
-        try {
-            UUID.fromString(body.getAccountId());
-        } catch (IllegalArgumentException e) {
-            throw new InvalidIdException("senderId", body.getAccountId());
-        }
-        if (body.getAmount().compareTo(BigDecimal.ZERO) < 1) {
-            throw new InvalidTransactionAmount("amountSent", body.getAmount());
+        if (body.getReceiverId() != null) {
+            validateNotNullableId("receiverId", body.getReceiverId());
+            if (body.getAmountReceived().compareTo(BigDecimal.ZERO) < 1) {
+                throw new InvalidTransactionAmount("amountReceived", body.getAmountReceived());
+            }
         }
     }
 }

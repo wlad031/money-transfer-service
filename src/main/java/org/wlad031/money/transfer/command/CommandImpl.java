@@ -36,68 +36,41 @@ public class CommandImpl implements Command {
     @Override
     public void createNewTransaction(
             @NonNull UUID transactionId,
-            @NonNull UUID senderId, @NonNull UUID receiverId,
-            @NonNull BigDecimal amountSent, @NonNull BigDecimal amountReceived,
+            UUID senderId, UUID receiverId,
+            BigDecimal amountSent, BigDecimal amountReceived,
             ZonedDateTime dateTime) {
-        final var sender = accountDao.getById(senderId);
-        if (sender == null) {
-            throw new AccountNotFoundException(senderId);
+        TransactionAmount transactionAmountSent = null;
+        TransactionAmount transactionAmountReceived = null;
+
+        if (senderId != null) {
+            final var sender = accountDao.getById(senderId);
+            if (sender == null) {
+                throw new AccountNotFoundException(senderId);
+            }
+            transactionAmountSent = new TransactionAmount(sender.getCurrency(), amountSent);
         }
-        final var receiver = accountDao.getById(receiverId);
-        if (receiver == null) {
-            throw new AccountNotFoundException(senderId);
+        if (receiverId != null) {
+            final var receiver = accountDao.getById(receiverId);
+            if (receiver == null) {
+                throw new AccountNotFoundException(receiverId);
+            }
+            transactionAmountReceived = new TransactionAmount(receiver.getCurrency(), amountReceived);
         }
         if (dateTime == null) dateTime = ZonedDateTime.now();
-        final var transaction = new Transaction(transactionId,
+        final var transaction = new Transaction(
+                transactionId,
                 senderId, receiverId,
-                new TransactionAmount(sender.getCurrency(),  amountSent),
-                new TransactionAmount(receiver.getCurrency(), amountReceived), dateTime);
+                transactionAmountSent,
+                transactionAmountReceived,
+                dateTime);
         transactionDao.create(transaction);
         CompletableFuture.runAsync(() -> {
             try {
                 accountDao.updateAccounts(transaction);
+                transactionDao.completeTransaction(transaction.getId());
             } catch (NotEnoughBalanceException e) {
                 transactionDao.abortTransaction(transaction.getId());
             }
-            transactionDao.completeTransaction(transaction.getId());
-        });
-    }
-
-    @Override
-    public void withdraw(@NonNull UUID transactionId, @NonNull UUID accountId, @NonNull BigDecimal amount, ZonedDateTime dateTime) {
-        final var account = accountDao.getById(accountId);
-        if (account == null) {
-            throw new AccountNotFoundException(accountId);
-        }
-        if (dateTime == null) dateTime = ZonedDateTime.now();
-        final var transaction = Transaction.withdraw(transactionId, accountId,
-                new TransactionAmount(account.getCurrency(), amount), dateTime);
-        CompletableFuture.runAsync(() -> {
-            try {
-                accountDao.updateAccounts(transaction);
-            } catch (NotEnoughBalanceException e) {
-                transactionDao.abortTransaction(transaction.getId());
-            }
-            transactionDao.completeTransaction(transaction.getId());
-        });
-    }
-
-    @Override
-    public void deposit(@NonNull UUID transactionId, @NonNull UUID accountId, @NonNull BigDecimal amount, ZonedDateTime dateTime) {
-        final var account = accountDao.getById(accountId);
-        if (account == null) {
-            throw new AccountNotFoundException(accountId);
-        }
-        if (dateTime == null) dateTime = ZonedDateTime.now();
-        final var transaction = Transaction.deposit(transactionId, accountId,
-                new TransactionAmount(account.getCurrency(), amount), dateTime);
-        CompletableFuture.runAsync(() -> {
-            try {
-                accountDao.updateAccounts(transaction);
-            } catch (NotEnoughBalanceException e) {
-                transactionDao.abortTransaction(transaction.getId());
-            }
-            transactionDao.completeTransaction(transaction.getId());
         });
     }
 }
