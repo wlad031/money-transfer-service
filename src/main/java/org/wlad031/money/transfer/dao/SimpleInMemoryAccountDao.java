@@ -9,6 +9,9 @@ import org.wlad031.money.transfer.model.Transaction;
 import java.util.Collection;
 import java.util.UUID;
 
+/**
+ * Simple implementation of {@link AccountDao} that uses underlying maps.
+ */
 public class SimpleInMemoryAccountDao implements AccountDao {
 
     private final SimpleInMemoryDataSource dataSource;
@@ -18,21 +21,33 @@ public class SimpleInMemoryAccountDao implements AccountDao {
         this.dataSource = dataSource;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Account getById(@NonNull UUID id) {
         return dataSource.getAccounts().get(id);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NonNull public Collection<Account> getAll() {
         return dataSource.getAccounts().values();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void create(@NonNull Account account) {
         dataSource.getAccounts().put(account.getId(), account);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updateAccounts(@NonNull Transaction transaction) {
         if (transaction.getSenderId() != null) {

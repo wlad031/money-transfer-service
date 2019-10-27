@@ -8,6 +8,9 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Simple implementation of {@link TransactionDao} that uses underlying maps.
+ */
 public class SimpleInMemoryTransactionDao implements TransactionDao {
 
     private final SimpleInMemoryDataSource dataSource;
@@ -17,11 +20,17 @@ public class SimpleInMemoryTransactionDao implements TransactionDao {
         this.dataSource = dataSource;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Transaction getById(@NonNull UUID id) {
         return dataSource.getTransactions().get(id);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NonNull Collection<Transaction> getAccountTransactions(@NonNull UUID accountId) {
         return dataSource.getTransactions().values().stream()
@@ -29,17 +38,26 @@ public class SimpleInMemoryTransactionDao implements TransactionDao {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void create(@NonNull Transaction transaction) {
         dataSource.getTransactions().put(transaction.getId(), transaction);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void completeTransaction(@NonNull UUID id) {
         final var transaction = dataSource.getTransactions().get(id);
         if (transaction != null) transaction.complete();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void abortTransaction(@NonNull UUID id) {
         final var transaction = dataSource.getTransactions().get(id);

@@ -16,6 +16,9 @@ import java.util.Currency;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Implementations for all system's 'C's (commands) from CQRS.
+ */
 public class CommandImpl implements Command {
 
     private final AccountDao accountDao;
@@ -27,14 +30,21 @@ public class CommandImpl implements Command {
         this.transactionDao = transactionDao;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void createNewAccount(
+    public CompletableFuture<Void> createNewAccount(
             @NonNull UUID accountId, @NonNull String name, @NonNull Currency currency) {
         accountDao.create(new Account(accountId, name, currency));
+        return CompletableFuture.runAsync(() -> {}); // may be more useful in future
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void createNewTransaction(
+    public CompletableFuture<Void> createNewTransaction(
             @NonNull UUID transactionId,
             UUID senderId, UUID receiverId,
             BigDecimal amountSent, BigDecimal amountReceived,
@@ -64,7 +74,7 @@ public class CommandImpl implements Command {
                 transactionAmountReceived,
                 dateTime);
         transactionDao.create(transaction);
-        CompletableFuture.runAsync(() -> {
+        return CompletableFuture.runAsync(() -> {
             try {
                 accountDao.updateAccounts(transaction);
                 transactionDao.completeTransaction(transaction.getId());

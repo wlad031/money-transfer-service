@@ -1,6 +1,8 @@
 package org.wlad031.money.transfer.validator;
 
+import io.javalin.http.Context;
 import lombok.NonNull;
+import org.wlad031.money.transfer.controller.TransactionController;
 import org.wlad031.money.transfer.exception.InvalidIdException;
 import org.wlad031.money.transfer.exception.InvalidTransactionAmount;
 import org.wlad031.money.transfer.exception.ValidationException;
@@ -9,8 +11,16 @@ import org.wlad031.money.transfer.model.request.CreateNewTransactionRequestBody;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * Validator for {@link TransactionController}'s methods
+ */
 public class TransactionControllerValidator extends AbstractValidator {
 
+    /**
+     * Checks request body of {@link TransactionController#createTransaction(Context)}
+     *
+     * @param body request body to check
+     */
     public void validateCreateTransaction(@NonNull CreateNewTransactionRequestBody body) {
         if (body.getSenderId() == null && body.getReceiverId() == null) {
             throw new ValidationException("senderId and/or receiverId must be not null");

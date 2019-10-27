@@ -8,6 +8,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.wlad031.money.transfer.AbstractTest;
 import org.wlad031.money.transfer.command.CommandImpl;
 import org.wlad031.money.transfer.config.Router;
 import org.wlad031.money.transfer.controller.AccountController;

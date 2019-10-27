@@ -22,6 +22,9 @@ import java.util.UUID;
 import static io.javalin.apibuilder.ApiBuilder.*;
 import static org.wlad031.money.transfer.converter.AbstractConverter.convertId;
 
+/**
+ * The controller for transaction-related operations
+ */
 public class TransactionController implements Controller {
 
     private final Query query;
@@ -39,6 +42,9 @@ public class TransactionController implements Controller {
         this.converter = new TransactionControllerConverter();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void bindRoutes() {
         path("/account/:id/transactions", () -> {
@@ -52,6 +58,9 @@ public class TransactionController implements Controller {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void bindExceptionHandlers(Javalin javalin) {
         javalin.exception(TransactionNotFoundException.class, (e, ctx) -> {
@@ -153,12 +162,20 @@ public class TransactionController implements Controller {
 
         final var transactionId = query.generateTransactionId();
 
-        command.createNewTransaction(transactionId,
-                body.getSenderId() == null ? null : convertId(body.getSenderId()),
-                body.getReceiverId() == null ? null : convertId(body.getReceiverId()),
-                body.getAmountSent(),
-                body.getAmountReceived(),
-                body.getDateTime());
+        if (body.getSenderId() == null) {
+            command.createDepositTransaction(transactionId, convertId(body.getReceiverId()),
+                    body.getAmountReceived(), body.getDateTime());
+        } else if (body.getReceiverId() == null) {
+            command.createWithdrawalTransaction(transactionId, convertId(body.getSenderId()),
+                    body.getAmountSent(), body.getDateTime());
+        } else {
+            command.createNewTransaction(transactionId,
+                    body.getSenderId() == null ? null : convertId(body.getSenderId()),
+                    body.getReceiverId() == null ? null : convertId(body.getReceiverId()),
+                    body.getAmountSent(),
+                    body.getAmountReceived(),
+                    body.getDateTime());
+        }
 
         ctx.json(converter.convertIdResponse(transactionId));
         ctx.status(Response.SC_CREATED);

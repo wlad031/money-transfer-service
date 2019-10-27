@@ -27,6 +27,7 @@
         <openapi.kotlin.version>0.20.1</openapi.kotlin.version>
         <swagger.webjars.version>3.23.8</swagger.webjars.version>
         <jacoco.version>0.8.5</jacoco.version>
+        <heroku.appName>wlad031-money-transfer</heroku.appName>
     </properties>
 
     <dependencies>

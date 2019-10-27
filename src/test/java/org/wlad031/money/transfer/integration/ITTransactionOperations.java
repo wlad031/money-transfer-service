@@ -8,6 +8,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.wlad031.money.transfer.AbstractTest;
 import org.wlad031.money.transfer.command.CommandImpl;
 import org.wlad031.money.transfer.config.Router;
 import org.wlad031.money.transfer.controller.AccountController;
@@ -18,8 +19,6 @@ import org.wlad031.money.transfer.dao.SimpleInMemoryTransactionDao;
 import org.wlad031.money.transfer.model.Account;
 import org.wlad031.money.transfer.model.Transaction;
 import org.wlad031.money.transfer.model.TransactionAmount;
-import org.wlad031.money.transfer.model.response.GetAccountTransactionsResponse;
-import org.wlad031.money.transfer.model.response.GetTransactionDetailsResponse;
 import org.wlad031.money.transfer.query.QueryImpl;
 
 import java.math.BigDecimal;

@@ -22,6 +22,9 @@ import java.util.UUID;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
 
+/**
+ * The controller for account-related operations
+ */
 public class AccountController implements Controller {
 
     private final Query query;
@@ -39,6 +42,9 @@ public class AccountController implements Controller {
         this.converter = new AccountControllerConverter();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void bindRoutes() {
         path("/account/:id", () -> {
@@ -50,6 +56,9 @@ public class AccountController implements Controller {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void bindExceptionHandlers(Javalin javalin) {
         javalin.exception(AccountNotFoundException.class, (e, ctx) -> {

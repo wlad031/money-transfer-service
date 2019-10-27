@@ -15,6 +15,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+/**
+ * Implementations for all system's 'Q's (queries) from CQRS.
+ */
 @Singleton
 public class QueryImpl implements Query {
 
@@ -27,16 +30,25 @@ public class QueryImpl implements Query {
         this.transactionDao = transactionDao;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NonNull UUID generateAccountId() {
         return UUID.randomUUID();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NonNull UUID generateTransactionId() {
         return UUID.randomUUID();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NonNull CompletableFuture<Account> getAccountDetailsById(@NonNull UUID id) {
         return CompletableFuture.supplyAsync(() -> {
@@ -48,6 +60,9 @@ public class QueryImpl implements Query {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NonNull CompletableFuture<Collection<UUID>> getAvailableAccountIds() {
         return CompletableFuture.supplyAsync(() -> {
@@ -55,6 +70,9 @@ public class QueryImpl implements Query {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NonNull CompletableFuture<Collection<Transaction>> getAccountTransactions(@NonNull UUID id) {
         return CompletableFuture.supplyAsync(() -> {
@@ -66,6 +84,9 @@ public class QueryImpl implements Query {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NonNull CompletableFuture<Transaction> getTransactionDetails(@NonNull UUID id) {
         return CompletableFuture.supplyAsync(() -> {

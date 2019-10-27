@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Simple datasource that uses underlying maps
+ */
 @Singleton
 public class SimpleInMemoryDataSource {
 
