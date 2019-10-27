@@ -1,0 +1,50 @@
+package org.wlad031.money.transfer.dao;
+
+import com.google.inject.Inject;
+import lombok.NonNull;
+import org.wlad031.money.transfer.exception.NotEnoughBalanceException;
+import org.wlad031.money.transfer.model.Account;
+import org.wlad031.money.transfer.model.Transaction;
+
+import java.util.Collection;
+import java.util.UUID;
+
+public class SimpleInMemoryAccountDao implements AccountDao {
+
+    private final SimpleInMemoryDataSource dataSource;
+
+    @Inject
+    public SimpleInMemoryAccountDao(SimpleInMemoryDataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    @Override
+    public Account getById(@NonNull UUID id) {
+        return dataSource.getAccounts().get(id);
+    }
+
+    @Override
+    @NonNull public Collection<Account> getAll() {
+        return dataSource.getAccounts().values();
+    }
+
+    @Override
+    public void create(@NonNull Account account) {
+        dataSource.getAccounts().put(account.getId(), account);
+    }
+
+    @Override
+    public void updateAccounts(@NonNull Transaction transaction) {
+        if (transaction.getSenderId() != null) {
+            final var sender = dataSource.getAccounts().get(transaction.getSenderId());
+            if (sender.getBalance().compareTo(transaction.getAmountSent().getAmount()) < 0) {
+                throw new NotEnoughBalanceException(transaction.getSenderId(), transaction.getId());
+            }
+            sender.add(transaction.getAmountSent().getAmount().negate());
+        }
+        if (transaction.getReceiverId() != null) {
+            final var receiver = dataSource.getAccounts().get(transaction.getReceiverId());
+            receiver.add(transaction.getAmountReceived().getAmount());
+        }
+    }
+}

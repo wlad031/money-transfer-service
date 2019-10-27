@@ -1,0 +1,35 @@
+GET {{host}}:{{port}}/account
+
+###
+
+POST {{host}}:{{port}}/account
+
+{
+"name": "account_1",
+"currency": "EUR"
+}
+
+###
+
+GET {{host}}:{{port}}/account/6fa5ffef-e6af-43a1-a462-6c10996d4d91
+
+###
+
+GET {{host}}:{{port}}/account/bde364a4-5f84-4bda-833c-d99d1c072878/transactions
+
+###
+
+GET {{host}}:{{port}}/transaction/03c8ef58-f3cb-4a0b-b776-0634db2fae3a
+
+###
+
+POST {{host}}:{{port}}/transaction
+
+{
+"senderId": "bde364a4-5f84-4bda-833c-d99d1c072878",
+"receiverId": "f99871b7-1008-4582-9a42-7d1c4dc2f196",
+"amountSent": "10.0",
+"amountReceived": "10.0"
+}
+
+###
