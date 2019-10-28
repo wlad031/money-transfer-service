@@ -15,6 +15,8 @@ import java.time.ZonedDateTime;
 import java.util.Currency;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Implementations for all system's 'C's (commands) from CQRS.
@@ -23,6 +25,8 @@ public class CommandImpl implements Command {
 
     private final AccountDao accountDao;
     private final TransactionDao transactionDao;
+
+    private final ExecutorService executor = Executors.newFixedThreadPool(8);
 
     @Inject
     public CommandImpl(AccountDao accountDao, TransactionDao transactionDao) {
@@ -37,7 +41,7 @@ public class CommandImpl implements Command {
     public CompletableFuture<Void> createNewAccount(
             @NonNull UUID accountId, @NonNull String name, @NonNull Currency currency) {
         accountDao.create(new Account(accountId, name, currency));
-        return CompletableFuture.runAsync(() -> {}); // may be more useful in future
+        return CompletableFuture.runAsync(() -> {}, executor); // may be more useful in future
     }
 
     /**
@@ -81,6 +85,6 @@ public class CommandImpl implements Command {
             } catch (NotEnoughBalanceException e) {
                 transactionDao.abortTransaction(transaction.getId());
             }
-        });
+        }, executor);
     }
 }

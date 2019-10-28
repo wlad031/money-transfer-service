@@ -13,6 +13,8 @@ import org.wlad031.money.transfer.model.Transaction;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -23,6 +25,8 @@ public class QueryImpl implements Query {
 
     private final AccountDao accountDao;
     private final TransactionDao transactionDao;
+
+    private final ExecutorService executor = Executors.newFixedThreadPool(8);
 
     @Inject
     public QueryImpl(AccountDao accountDao, TransactionDao transactionDao) {
@@ -57,7 +61,7 @@ public class QueryImpl implements Query {
                 throw new AccountNotFoundException(id);
             }
             return account;
-        });
+        }, executor);
     }
 
     /**
@@ -67,7 +71,7 @@ public class QueryImpl implements Query {
     public @NonNull CompletableFuture<Collection<UUID>> getAvailableAccountIds() {
         return CompletableFuture.supplyAsync(() -> {
             return accountDao.getAll().stream().map(Account::getId).collect(Collectors.toSet());
-        });
+        }, executor);
     }
 
     /**
@@ -81,7 +85,7 @@ public class QueryImpl implements Query {
                 throw new AccountNotFoundException(id);
             }
             return transactionDao.getAccountTransactions(id);
-        });
+        }, executor);
     }
 
     /**
@@ -95,6 +99,6 @@ public class QueryImpl implements Query {
                 throw new TransactionNotFoundException(id);
             }
             return transaction;
-        });
+        }, executor);
     }
 }

@@ -9,6 +9,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.wlad031.money.transfer.AbstractTest;
+import org.wlad031.money.transfer.command.Command;
 import org.wlad031.money.transfer.command.CommandImpl;
 import org.wlad031.money.transfer.config.Router;
 import org.wlad031.money.transfer.controller.AccountController;
@@ -17,6 +18,7 @@ import org.wlad031.money.transfer.dao.SimpleInMemoryAccountDao;
 import org.wlad031.money.transfer.dao.SimpleInMemoryDataSource;
 import org.wlad031.money.transfer.dao.SimpleInMemoryTransactionDao;
 import org.wlad031.money.transfer.model.Account;
+import org.wlad031.money.transfer.query.Query;
 import org.wlad031.money.transfer.query.QueryImpl;
 
 import java.io.IOException;

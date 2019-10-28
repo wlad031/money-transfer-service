@@ -13,5 +13,4 @@ out/
 .idea_modules/
 *.class
 *.log
-dependency-reduced-pom.xml
 *.iml
