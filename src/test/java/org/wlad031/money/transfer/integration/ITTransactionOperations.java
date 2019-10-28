@@ -374,9 +374,7 @@ public class ITTransactionOperations extends AbstractIntegrationTest {
                 body("receiverId", equalTo(transaction.getReceiverId().toString())).
                 body("status", equalTo("PENDING")).
                 body("amountSent.currency", equalTo("EUR")).
-                body("amountSent.amount", equalTo("10.01")).
                 body("amountReceived.currency", equalTo("RUB")).
-                body("amountReceived.amount", equalTo("600.01")).
                 body("dateTime", equalTo(now.toString()));
     }
 

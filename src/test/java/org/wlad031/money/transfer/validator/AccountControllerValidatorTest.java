@@ -25,4 +25,9 @@ public class AccountControllerValidatorTest {
     public void validateCreateNewAccount_InvalidCurrency() {
         validator.validateCreateNewAccount(new CreateNewAccountRequestBody("name", "LOL"));
     }
+
+    @Test(expected = NullPointerException.class)
+    public void validateCreateNewAccount_NullBody() {
+        validator.validateCreateNewAccount(null);
+    }
 }

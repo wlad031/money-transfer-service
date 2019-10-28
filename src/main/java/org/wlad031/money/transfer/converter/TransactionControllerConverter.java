@@ -95,7 +95,7 @@ public class TransactionControllerConverter extends AbstractConverter {
      * @param status value to convert
      * @return converted value
      */
-    public GetTransactionDetailsResponse.Status convertTransactionStatus(Transaction.Status status) {
+    public GetTransactionDetailsResponse.Status convertTransactionStatus(@NonNull Transaction.Status status) {
         return convertEnum(status, GetTransactionDetailsResponse.Status.class);
     }
 
@@ -106,7 +106,7 @@ public class TransactionControllerConverter extends AbstractConverter {
      * @param status value to convert
      * @return converted value
      */
-    public GetAccountTransactionsResponse.Transaction.Status convertAccountTransactionStatus(Transaction.Status status) {
+    public GetAccountTransactionsResponse.Transaction.Status convertAccountTransactionStatus(@NonNull Transaction.Status status) {
         return convertEnum(status, GetAccountTransactionsResponse.Transaction.Status.class);
     }
 }

@@ -1,6 +1,7 @@
 package org.wlad031.money.transfer.converter;
 
 import org.junit.Test;
+import org.wlad031.money.transfer.controller.TransactionController;
 import org.wlad031.money.transfer.model.Transaction;
 import org.wlad031.money.transfer.model.TransactionAmount;
 import org.wlad031.money.transfer.model.response.GetAccountTransactionsResponse;
@@ -9,10 +10,7 @@ import org.wlad031.money.transfer.model.response.IdResponse;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Currency;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -20,20 +18,20 @@ import static org.junit.Assert.*;
 
 public class TransactionControllerConverterTest {
 
-    @Test
-    public void convertIdResponse_ValidResponse() {
-        final var converter = new TransactionControllerConverter();
-        final var id = UUID.randomUUID();
+    private final TransactionControllerConverter converter = new TransactionControllerConverter();
 
-        final var actual = converter.convertIdResponse(id);
+    @Test(expected = NullPointerException.class)
+    public void convertGetAccountTransactionsResponse_NullAccountId() {
+        converter.convertGetAccountTransactionsResponse(null, new ArrayList<>());
+    }
 
-        assertEquals(new IdResponse(id.toString()), actual);
+    @Test(expected = NullPointerException.class)
+    public void convertGetAccountTransactionsResponse_NullTransactionCollection() {
+        converter.convertGetAccountTransactionsResponse(UUID.randomUUID(), null);
     }
 
     @Test
     public void convertGetAccountTransactionsResponse_AccountIsSender() {
-        final var converter = new TransactionControllerConverter();
-
         final var now = ZonedDateTime.now();
         final var accountId1 = UUID.randomUUID();
         final var accountId2 = UUID.randomUUID();
@@ -60,8 +58,6 @@ public class TransactionControllerConverterTest {
 
     @Test
     public void convertGetAccountTransactionsResponse_AccountIsReceiver() {
-        final var converter = new TransactionControllerConverter();
-
         final var now = ZonedDateTime.now();
         final var accountId1 = UUID.randomUUID();
         final var accountId2 = UUID.randomUUID();
@@ -88,8 +84,6 @@ public class TransactionControllerConverterTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void convertGetAccountTransactionsResponse_AccountDoestHaveTransaction() {
-        final var converter = new TransactionControllerConverter();
-
         final var now = ZonedDateTime.now();
         final var accountId1 = UUID.randomUUID();
 
@@ -101,13 +95,11 @@ public class TransactionControllerConverterTest {
                         new TransactionAmount(Currency.getInstance("RUB"), new BigDecimal("10.12")),
                         now))
                 .collect(Collectors.toSet());
-        final var actual = converter.convertGetAccountTransactionsResponse(accountId1, transactions);
+        converter.convertGetAccountTransactionsResponse(accountId1, transactions);
     }
 
     @Test
     public void convertGetTransactionDetails_ValidResponse() {
-        final var converter = new TransactionControllerConverter();
-
         final var transactionId = UUID.randomUUID();
         final var senderId = UUID.randomUUID();
         final var receiverId = UUID.randomUUID();
@@ -125,17 +117,18 @@ public class TransactionControllerConverterTest {
         assertEquals(expected, actual);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void convertGetTransactionDetails_NullTransaction() {
+        converter.convertGetTransactionDetails(null);
+    }
+
     @Test
     public void transactionStatusesAreConvertible() {
-        final var converter = new TransactionControllerConverter();
-
         Arrays.stream(Transaction.Status.values()).map(converter::convertTransactionStatus).collect(Collectors.toSet());
     }
 
     @Test
     public void accountTransactionStatusesAreConvertible() {
-        final var converter = new TransactionControllerConverter();
-
         Arrays.stream(Transaction.Status.values()).map(converter::convertAccountTransactionStatus).collect(Collectors.toSet());
     }
 }

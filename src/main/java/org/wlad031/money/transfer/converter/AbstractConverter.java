@@ -18,7 +18,7 @@ public abstract class AbstractConverter {
      * @param id UUID to convert
      * @return converted UUID
      */
-    public IdResponse convertIdResponse(@NonNull UUID id) {
+    public static IdResponse convertIdResponse(@NonNull UUID id) {
         return new IdResponse(id.toString());
     }
 

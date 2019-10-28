@@ -6,12 +6,18 @@ import org.wlad031.money.transfer.exception.InvalidTransactionAmount;
 import org.wlad031.money.transfer.exception.ValidationException;
 import org.wlad031.money.transfer.model.request.CreateNewTransactionRequestBody;
 
+import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public class TransactionControllerValidatorTest {
 
     private final TransactionControllerValidator validator = new TransactionControllerValidator();
+
+    @Test(expected = NullPointerException.class)
+    public void validateCreateTransaction_NullBody() {
+        validator.validateCreateTransaction(null);
+    }
 
     @Test
     public void validateCreateTransaction_ValidRequest() {

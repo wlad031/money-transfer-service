@@ -64,6 +64,16 @@ public class SimpleInMemoryTransactionDaoTest {
         assertNull(actual);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void getById_NullAccountId() {
+        dao.getById(null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getAccountTransactions_NullAccount_Id() {
+        dao.getAccountTransactions(null);
+    }
+
     @Test
     public void getAccountTransactions() {
         final var accountId = UUID.randomUUID();
@@ -106,6 +116,11 @@ public class SimpleInMemoryTransactionDaoTest {
                 new HashSet<>(actual));
     }
 
+    @Test(expected = NullPointerException.class)
+    public void create_Null() {
+        dao.create(null);
+    }
+
     @Test
     public void create() {
         final var id = UUID.randomUUID();
@@ -120,6 +135,11 @@ public class SimpleInMemoryTransactionDaoTest {
         dao.create(transaction);
 
         assertEquals(transaction, dataSource.getTransactions().get(id));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void completeTransaction_NullTransaction() {
+        dao.completeTransaction(null);
     }
 
     @Test
@@ -161,6 +181,11 @@ public class SimpleInMemoryTransactionDaoTest {
 
         assertThat(dataSource.getTransactions().entrySet(), hasSize(1));
         assertEquals(Transaction.Status.PENDING, dao.getById(id).getStatus());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void abortTransaction_NullTransaction() {
+        dao.abortTransaction(null);
     }
 
     @Test

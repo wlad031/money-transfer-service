@@ -1,6 +1,7 @@
 package org.wlad031.money.transfer.converter;
 
 import org.junit.Test;
+import org.wlad031.money.transfer.model.response.IdResponse;
 
 import java.time.ZonedDateTime;
 import java.util.Currency;
@@ -9,6 +10,18 @@ import java.util.UUID;
 import static org.junit.Assert.*;
 
 public class AbstractConverterTest {
+
+    @Test
+    public void convertIdResponse_ValidResponse() {
+        final var id = UUID.randomUUID();
+        final var actual = AbstractConverter.convertIdResponse(id);
+        assertEquals(new IdResponse(id.toString()), actual);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void convertIdResponse_NullId() {
+        AbstractConverter.convertIdResponse(null);
+    }
 
     @Test
     public void convertDateTime() {

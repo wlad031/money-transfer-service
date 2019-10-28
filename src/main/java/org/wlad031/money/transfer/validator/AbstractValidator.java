@@ -1,5 +1,6 @@
 package org.wlad031.money.transfer.validator;
 
+import lombok.NonNull;
 import org.wlad031.money.transfer.exception.InvalidIdException;
 
 import java.util.UUID;
@@ -15,7 +16,7 @@ public abstract class AbstractValidator {
      * @param fieldName the fieldName for exception message
      * @param id        ID to check
      */
-    public void validateNotNullableId(String fieldName, String id) {
+    public static void validateNotNullableId(@NonNull String fieldName, String id) {
         if (id == null) throw new InvalidIdException(fieldName, null);
         try {
             UUID.fromString(id);

@@ -17,19 +17,10 @@ import static org.junit.Assert.assertEquals;
 
 public class AccountControllerConverterTest {
 
-    @Test
-    public void convertIdResponse_ValidResponse() {
-        final var converter = new AccountControllerConverter();
-        final var id = UUID.randomUUID();
-
-        final var actual = converter.convertIdResponse(id);
-
-        assertEquals(new IdResponse(id.toString()), actual);
-    }
+    private final AccountControllerConverter converter = new AccountControllerConverter();
 
     @Test
     public void convertGetAccountDetailsResponse_ValidResponse() {
-        final var converter = new AccountControllerConverter();
         final var id = UUID.randomUUID();
         final var account = new Account(id, "name", Currency.getInstance("EUR"));
         account.setBalance(new BigDecimal("10.12"));
@@ -41,9 +32,13 @@ public class AccountControllerConverterTest {
         assertEquals(expected, actual);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void convertGetAccountDetailsResponse_NullParam() {
+        converter.convertGetAccountDetails(null);
+    }
+
     @Test
     public void convertConvertGetAccountIdsResponse_ValidResponse() {
-        final var converter = new AccountControllerConverter();
         final var ids = IntStream.range(0, 10).mapToObj(__ -> UUID.randomUUID()).collect(Collectors.toSet());
 
         final var actual = converter.convertGetAccountIdsResponse(ids);
@@ -52,10 +47,18 @@ public class AccountControllerConverterTest {
         assertEquals(expected, actual);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void convertConvertGetAccountIdsResponse_NullParam() {
+        converter.convertGetAccountIdsResponse(null);
+    }
+
     @Test
     public void accountStatusesAreConvertible() {
-        final var converter = new AccountControllerConverter();
-
         Arrays.stream(Account.Status.values()).map(converter::convertAccountStatus).collect(Collectors.toSet());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void accountStatusesAreConvertible_NullStatus() {
+        converter.convertAccountStatus(null);
     }
 }

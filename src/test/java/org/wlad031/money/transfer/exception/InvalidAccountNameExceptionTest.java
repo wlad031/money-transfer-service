@@ -7,8 +7,14 @@ import static org.junit.Assert.*;
 public class InvalidAccountNameExceptionTest {
 
     @Test
-    public void getMessage() {
+    public void getMessage_NullName() {
         final var ex = new InvalidAccountNameException(null);
         assertEquals("Invalid account name: null", ex.getMessage());
+    }
+
+    @Test
+    public void getMessage_ValidName() {
+        final var ex = new InvalidAccountNameException("hello");
+        assertEquals("Invalid account name: hello", ex.getMessage());
     }
 }

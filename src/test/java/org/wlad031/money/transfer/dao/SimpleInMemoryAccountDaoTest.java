@@ -1,10 +1,8 @@
 package org.wlad031.money.transfer.dao;
 
-import kotlin.ranges.IntRange;
-import org.hamcrest.Matchers;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.wlad031.money.transfer.exception.NotEnoughBalanceException;
 import org.wlad031.money.transfer.model.Account;
 import org.wlad031.money.transfer.model.Transaction;
 import org.wlad031.money.transfer.model.TransactionAmount;
@@ -17,7 +15,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.*;
 
 public class SimpleInMemoryAccountDaoTest {
@@ -50,6 +48,11 @@ public class SimpleInMemoryAccountDaoTest {
         final var actual = dao.getById(UUID.randomUUID());
 
         assertNull(actual);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getById_NullId() {
+        dao.getById(null);
     }
 
     @Test
@@ -86,8 +89,18 @@ public class SimpleInMemoryAccountDaoTest {
         assertEquals(account, dataSource.getAccounts().get(id));
     }
 
+    @Test(expected = NullPointerException.class)
+    public void create_Null() {
+        dao.create(null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void updateAccounts_NullTransaction() {
+        dao.updateAccounts(null);
+    }
+
     @Test
-    public void updateAccounts() {
+    public void updateAccounts_NormalTransaction() {
         final var id1 = UUID.randomUUID();
         final var id2 = UUID.randomUUID();
 
@@ -106,5 +119,72 @@ public class SimpleInMemoryAccountDaoTest {
                 new TransactionAmount(Currency.getInstance("EUR"), new BigDecimal("1.4")),
                 ZonedDateTime.now()));
 
+        assertEquals(new BigDecimal("0").compareTo(account1.getBalance()), 0);
+        assertEquals(new BigDecimal("101.4").compareTo(account2.getBalance()), 0);
+    }
+
+    @Test
+    public void updateAccounts_DepositTransaction() {
+        final var id = UUID.randomUUID();
+        final var account = new Account(id, "name", Currency.getInstance("EUR"));
+        account.setBalance(new BigDecimal("100.00"));
+
+        dataSource.getAccounts().put(account.getId(), account);
+
+        final var transactionId = UUID.randomUUID();
+
+        dao.updateAccounts(Transaction.deposit(transactionId, id,
+                new TransactionAmount(Currency.getInstance("EUR"), new BigDecimal("1.4")),
+                ZonedDateTime.now()));
+
+        assertEquals(new BigDecimal("101.4").compareTo(account.getBalance()), 0);
+    }
+
+    @Test
+    public void updateAccounts_WithdrawalTransaction() {
+        final var id = UUID.randomUUID();
+        final var account = new Account(id, "name", Currency.getInstance("EUR"));
+        account.setBalance(new BigDecimal("100.00"));
+
+        dataSource.getAccounts().put(account.getId(), account);
+
+        final var transactionId = UUID.randomUUID();
+
+        dao.updateAccounts(Transaction.withdraw(transactionId, id,
+                new TransactionAmount(Currency.getInstance("EUR"), new BigDecimal("1.4")),
+                ZonedDateTime.now()));
+
+        assertEquals(new BigDecimal("98.6").compareTo(account.getBalance()), 0);
+    }
+
+    @Test
+    public void updateAccounts_NotEnoughBalance() {
+        final var id1 = UUID.randomUUID();
+        final var id2 = UUID.randomUUID();
+
+        final var account1 = new Account(id1, "name", Currency.getInstance("RUB"));
+        account1.setBalance(new BigDecimal("100.00"));
+        final var account2 = new Account(id2, "name", Currency.getInstance("EUR"));
+        account2.setBalance(new BigDecimal("100.00"));
+
+        dataSource.getAccounts().put(account1.getId(), account1);
+        dataSource.getAccounts().put(account2.getId(), account2);
+
+        final var transactionId = UUID.randomUUID();
+
+        try {
+            dao.updateAccounts(new Transaction(transactionId, id1, id2,
+                    new TransactionAmount(Currency.getInstance("RUB"), new BigDecimal("101.00")),
+                    new TransactionAmount(Currency.getInstance("EUR"), new BigDecimal("1.4")),
+                    ZonedDateTime.now()));
+            fail("No exceptions thrown");
+        } catch (NotEnoughBalanceException e) {
+            assertEquals("Transaction " + transactionId.toString() +
+                    " not allowed: account=" + id1.toString() +
+                    " has too low balance", e.getMessage());
+        } finally {
+            assertEquals(new BigDecimal("100.0").compareTo(account1.getBalance()), 0);
+            assertEquals(new BigDecimal("100.0").compareTo(account2.getBalance()), 0);
+        }
     }
 }
