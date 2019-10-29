@@ -28,7 +28,7 @@ java -jar target/money-transfer-0.0.1.jar
 
 #### Available methods
 
-Default port is 8080.
+Default port is `8080`.
 
 Here is the short description of all available endpoints.
 
@@ -45,3 +45,14 @@ try all the endpoints right from there.
 | GET    | `​/transaction​/{id}`          | Returns transaction details by it's ID | 
 | POST   | `​/transaction`               | Creates new transaction |
 
+Moreover, all available endpoints are in the `requests.http` file. It could be really
+useful when using JetBrains IDEs.
+
+##### Basic scenario
+
+Basic scenario is:
+1. create a couple of accounts
+2. deposit some money to the accounts
+   using transactions with null senderId
+3. create some transactions between accounts
+4. check account balances

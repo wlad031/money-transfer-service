@@ -53,7 +53,8 @@ public class TransactionControllerConverter extends AbstractConverter {
         return new GetAccountTransactionsResponse.Transaction(
                 convertId(transaction.getId()),
                 convertAccountTransactionStatus(transaction.getStatus()),
-                convertId(transaction.getSenderId()), convertId(transaction.getReceiverId()),
+                transaction.getSenderId() == null ? null : convertId(transaction.getSenderId()),
+                transaction.getReceiverId() == null ? null : convertId(transaction.getReceiverId()),
                 direction,
                 amount.getAmount(), convertCurrency(amount.getCurrency()),
                 convertDateTime(transaction.getCreatedDateTime()));

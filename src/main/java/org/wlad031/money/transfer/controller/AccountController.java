@@ -6,6 +6,7 @@ import io.javalin.http.Context;
 import io.javalin.plugin.openapi.annotations.*;
 import org.eclipse.jetty.server.Response;
 import org.wlad031.money.transfer.command.Command;
+import org.wlad031.money.transfer.converter.AbstractConverter;
 import org.wlad031.money.transfer.exception.InvalidAccountNameException;
 import org.wlad031.money.transfer.query.Query;
 import org.wlad031.money.transfer.converter.AccountControllerConverter;
@@ -15,12 +16,15 @@ import org.wlad031.money.transfer.model.response.ErrorResponse;
 import org.wlad031.money.transfer.model.response.GetAccountDetailsResponse;
 import org.wlad031.money.transfer.model.response.GetAllAccountsResponse;
 import org.wlad031.money.transfer.model.response.IdResponse;
+import org.wlad031.money.transfer.validator.AbstractValidator;
 import org.wlad031.money.transfer.validator.AccountControllerValidator;
 
 import java.util.Currency;
 import java.util.UUID;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
+import static org.wlad031.money.transfer.converter.AbstractConverter.convertIdResponse;
+import static org.wlad031.money.transfer.validator.AbstractValidator.*;
 
 /**
  * The controller for account-related operations
@@ -89,7 +93,7 @@ public class AccountController implements Controller {
     )
     public void getAccountDetailsById(Context ctx) {
         final var accountId = ctx.pathParam("id");
-        validator.validateNotNullableId("id", accountId);
+        validateNotNullableId("id", accountId);
         final var accountDetails = query.getAccountDetailsById(UUID.fromString(accountId))
                 .thenApply(converter::convertGetAccountDetails);
 
@@ -123,7 +127,13 @@ public class AccountController implements Controller {
             path = "/account",
             method = HttpMethod.POST,
             summary = "Creates and registers new account",
-            description = "Creates and registers new account",
+            description = "" +
+                    "Creates and registers new account\n" +
+                    "\n" +
+                    "Notes:\n" +
+                    "   Currencies are identified by their ISO 4217 currency\n" +
+                    "   codes. Visit the <a href=\"http://www.iso.org/iso/home/standards/currency_codes.htm\">\n" +
+                    "   ISO web site</a> for more information.",
             requestBody = @OpenApiRequestBody(
                     content = @OpenApiContent(from = CreateNewAccountRequestBody.class),
                     required = true),
@@ -148,7 +158,7 @@ public class AccountController implements Controller {
 
         command.createNewAccount(accountId, body.getName(), currency);
 
-        ctx.json(converter.convertIdResponse(accountId));
+        ctx.json(convertIdResponse(accountId));
         ctx.status(Response.SC_CREATED);
     }
 }

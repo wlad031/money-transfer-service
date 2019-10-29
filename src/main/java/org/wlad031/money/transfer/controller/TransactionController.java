@@ -15,12 +15,15 @@ import org.wlad031.money.transfer.model.response.ErrorResponse;
 import org.wlad031.money.transfer.model.response.GetAccountTransactionsResponse;
 import org.wlad031.money.transfer.model.response.GetTransactionDetailsResponse;
 import org.wlad031.money.transfer.model.response.IdResponse;
+import org.wlad031.money.transfer.validator.AbstractValidator;
 import org.wlad031.money.transfer.validator.TransactionControllerValidator;
 
 import java.util.UUID;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
 import static org.wlad031.money.transfer.converter.AbstractConverter.convertId;
+import static org.wlad031.money.transfer.converter.AbstractConverter.convertIdResponse;
+import static org.wlad031.money.transfer.validator.AbstractValidator.*;
 
 /**
  * The controller for transaction-related operations
@@ -91,7 +94,7 @@ public class TransactionController implements Controller {
     )
     public void getTransactionDetails(Context ctx) {
         final var transactionId = ctx.pathParam("id");
-        validator.validateNotNullableId("id", transactionId);
+        validateNotNullableId("id", transactionId);
 
         final var transactionDetails = query.getTransactionDetails(
                 convertId(transactionId))
@@ -123,7 +126,7 @@ public class TransactionController implements Controller {
     )
     public void getAccountTransactions(Context ctx) {
         final var accountId = ctx.pathParam("id");
-        validator.validateNotNullableId("id", accountId);
+        validateNotNullableId("id", accountId);
 
         final var id = convertId(accountId);
         final var transactions = query.getAccountTransactions(id)
@@ -137,7 +140,16 @@ public class TransactionController implements Controller {
             path = "/transaction",
             method = HttpMethod.POST,
             summary = "Creates new transaction",
-            description = "Creates new transaction",
+            description = "" +
+                    "Creates new transaction\n" +
+                    "\n" +
+                    "Supports 3 types of transactions:\n" +
+                    "   1. normal transactions - just send money from one account to another\n" +
+                    "      when sender and receiver IDs are not null\n" +
+                    "   2. deposit - add money to some account\n" +
+                    "      when sender ID is null\n" +
+                    "   3. withdrawal - withdraw money from some account\n" +
+                    "      when receiver ID is null",
             requestBody = @OpenApiRequestBody(
                     content = @OpenApiContent(from = CreateNewTransactionRequestBody.class),
                     required = true),
@@ -177,7 +189,7 @@ public class TransactionController implements Controller {
                     body.getDateTime());
         }
 
-        ctx.json(converter.convertIdResponse(transactionId));
+        ctx.json(convertIdResponse(transactionId));
         ctx.status(Response.SC_CREATED);
     }
 }

@@ -52,6 +52,7 @@ public class AppModule extends AbstractModule {
                 .version("0.0.1")
                 .description("Money Transfer Service"))
                 .path("/swagger-docs")
-                .swagger(new SwaggerOptions("/swagger").title("Money Transfer Service - Swagger Documentation"));
+                .swagger(new SwaggerOptions("/swagger")
+                        .title("Money Transfer Service - Swagger Documentation"));
     }
 }
